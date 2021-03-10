@@ -5,9 +5,11 @@ import {callApi} from "./utils/callapi.js"
 const getEle = (id) => document.getElementById(id)
 
 const renderList = (arr) => {
-    let contentLi = ""
+    let todoLi = ""
+    let completedLi = ""
     arr.forEach((item)=>{
-        contentLi += `
+        if(item.status === 'notCompleted'){
+            todoLi += `
             <li>
                 <span>${item.textTask}</span>
                 <div class="buttons">
@@ -21,7 +23,25 @@ const renderList = (arr) => {
                 </div>
             </li>  
         `
-        getEle("todo").innerHTML = contentLi
+        } else {
+            completedLi += `
+               <li>
+                  <span>${item.textTask}</span>
+                  <div class="buttons">
+                   <button class="remove" onclick="deleteToDo(${item.id})">
+                       <i class="fa fa-trash-alt"></i>
+                   </button>
+                   <button class="complete" onclick="changeStatus(${item.id})">
+                        <i class="far fa-check-circle"></i>
+                        <i class="fas fa-check-circle"></i>
+                   </button>
+                  </div>
+               </li>
+                `
+        }
+        
+        getEle("todo").innerHTML = todoLi
+        getEle("completed").innerHTML = completedLi
     })
 }
 
@@ -69,12 +89,15 @@ const changeStatus = (id) =>{
         
         for(let i = 0; i < res.data.length; i++){
             
-            if(res.data[i].id == id){
-                console.log(res.data[i].status)
+            if(res.data[i].id == id && res.data[i].status === "notCompleted"){      
                 res.data[i].status = 'completed'
-                console.log(res.data[i].status)
-            } 
+                callApi("users/"+id, "PUT", res.data[i])
+            } else if (res.data[i].id == id && res.data[i].status === "completed"){
+                res.data[i].status = 'notCompleted'
+                callApi("users/"+id, "PUT", res.data[i])
+            }
         }
+        showList()
     })
     .catch((err)=>console.log(err))
 }
